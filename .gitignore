@@ -1,17 +1,5 @@
-# Java and Spring Boot
 target/
-*.class
-
-# React
-node_modules/
-build/
-dist/
-
-# IDE
 .idea/
 .vscode/
-.settings/
-
-# Secrets
+*.log
 .env
-application-local.properties
