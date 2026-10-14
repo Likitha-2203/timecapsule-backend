@@ -145,6 +145,11 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    public void testMail(String to) {
+        mailService.send(to.trim(), "TimeCapsule Delivery Test",
+                "Hello from TimeCapsule!\n\nIf you are reading this email, real email delivery to your inbox is working 100%!\n\n— TimeCapsule Team");
+    }
+
     // ---------- helpers ----------
 
     /** Every successful login is stored in the login_history table. */

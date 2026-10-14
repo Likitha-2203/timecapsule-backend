@@ -86,4 +86,10 @@ public class AuthController {
 
         return Map.of("ok", true);
     }
+
+    @GetMapping("/test-mail")
+    public Map<String, Object> testMail(@RequestParam String to) {
+        authService.testMail(to);
+        return Map.of("ok", true, "message", "Email sent successfully to " + to);
+    }
 }
