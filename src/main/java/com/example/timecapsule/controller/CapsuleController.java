@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/capsules")
+@RequestMapping({"/api/capsules", "/capsules"})
 public class CapsuleController {
 
     private final CapsuleService capsuleService;

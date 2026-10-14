@@ -17,11 +17,25 @@ public class MailService {
 
     private final JavaMailSender sender; // null when spring.mail.* is not configured
     private final String from;
+    private final String username;
+    private final String password;
 
     public MailService(ObjectProvider<JavaMailSender> senderProvider,
-                       @Value("${app.mail.from:}") String from) {
+                       @Value("${app.mail.from:}") String from,
+                       @Value("${spring.mail.username:}") String username,
+                       @Value("${spring.mail.password:}") String password) {
         this.sender = senderProvider.getIfAvailable();
         this.from = from;
+        this.username = username;
+        this.password = password;
+    }
+
+    /** Returns true if email sending is fully configured with credentials. */
+    public boolean isConfigured() {
+        return sender != null
+                && username != null && !username.isBlank()
+                && password != null && !password.isBlank()
+                && !password.equals("null");
     }
 
     /** Like send(), but never throws: returns false if the email could not be sent. */
@@ -35,9 +49,9 @@ public class MailService {
     }
 
     public void send(String to, String subject, String body) {
-        if (sender == null) {
-            // Development mode: no SMTP configured, so the email is printed here instead
-            log.info("\n===== [DEV EMAIL - mail is not configured] =====\nTo: {}\nSubject: {}\n\n{}\n=================================================",
+        if (!isConfigured()) {
+            // Development or unconfigured mode: email credentials not provided, log email instead of failing
+            log.info("\n===== [EMAIL NOT CONFIGURED / DEV MODE] =====\nTo: {}\nSubject: {}\n\n{}\n=================================================",
                     to, subject, body);
             return;
         }

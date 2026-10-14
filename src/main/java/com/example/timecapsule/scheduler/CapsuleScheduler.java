@@ -36,16 +36,24 @@ public class CapsuleScheduler {
         Instant now = Instant.now();
 
         for (Capsule capsule : capsuleRepository.findDueReminders(now)) {
-            if (notificationService.capsuleReminder(capsule)) {
-                capsule.setReminderSent(true);
-                log.info("Reminder sent for capsule {}", capsule.getId());
+            try {
+                if (notificationService.capsuleReminder(capsule)) {
+                    capsule.setReminderSent(true);
+                    log.info("Reminder sent for capsule {}", capsule.getId());
+                }
+            } catch (Exception e) {
+                log.error("Failed to process reminder for capsule {}: {}", capsule.getId(), e.getMessage());
             }
         }
 
         for (Capsule capsule : capsuleRepository.findByUnlockAtLessThanEqualAndNotifiedFalse(now)) {
-            if (notificationService.capsuleReady(capsule)) {
-                capsule.setNotified(true);
-                log.info("Ready notice sent for capsule {}", capsule.getId());
+            try {
+                if (notificationService.capsuleReady(capsule)) {
+                    capsule.setNotified(true);
+                    log.info("Ready notice sent for capsule {}", capsule.getId());
+                }
+            } catch (Exception e) {
+                log.error("Failed to process ready notification for capsule {}: {}", capsule.getId(), e.getMessage());
             }
         }
     }
