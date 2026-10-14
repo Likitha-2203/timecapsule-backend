@@ -22,8 +22,8 @@ public class NotificationService {
     private final String frontendUrl;
 
     public NotificationService(MailService mailService,
-                               @Value("${app.timezone:Asia/Kolkata}") String timezone,
-                               @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl) {
+                            @Value("${app.timezone:Asia/Kolkata}") String timezone,
+                            @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl) {
         this.mailService = mailService;
         this.zone = ZoneId.of(timezone);
         this.frontendUrl = frontendUrl;

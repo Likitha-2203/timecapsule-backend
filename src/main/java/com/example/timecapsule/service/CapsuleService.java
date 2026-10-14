@@ -10,10 +10,12 @@ import com.example.timecapsule.entity.User;
 import com.example.timecapsule.exception.ApiException;
 import com.example.timecapsule.repository.CapsuleRepository;
 import com.example.timecapsule.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -23,10 +25,17 @@ public class CapsuleService {
 
     private final CapsuleRepository capsuleRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final long reminderHours;
 
-    public CapsuleService(CapsuleRepository capsuleRepository, UserRepository userRepository) {
+    public CapsuleService(CapsuleRepository capsuleRepository,
+                          UserRepository userRepository,
+                          NotificationService notificationService,
+                          @Value("${app.capsule.reminder-hours:24}") long reminderHours) {
         this.capsuleRepository = capsuleRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
+        this.reminderHours = reminderHours;
     }
 
     public Long create(String senderEmail, CapsuleRequest request) {
@@ -55,7 +64,18 @@ public class CapsuleService {
         capsule.setSender(sender);
         capsule.setRecipient(recipient);
 
-        return capsuleRepository.save(capsule).getId();
+        // The "opens soon" reminder goes out reminderHours before unlocking. For short capsules the
+        // reminder is sent halfway through instead, so it never arrives right after creation.
+        long totalSeconds = Duration.between(Instant.now(), request.unlockAt()).getSeconds();
+        long windowSeconds = Math.min(reminderHours * 3600L, totalSeconds / 2);
+        capsule.setReminderAt(request.unlockAt().minusSeconds(windowSeconds));
+
+        Capsule saved = capsuleRepository.save(capsule);
+
+        // Tell the recipient straight away. A mail failure must never stop the capsule from being created.
+        notificationService.capsuleCreated(saved);
+
+        return saved.getId();
     }
 
     /** Lists never include the message: it is only revealed by open() after the unlock time. */
