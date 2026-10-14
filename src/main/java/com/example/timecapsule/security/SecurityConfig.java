@@ -20,6 +20,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.core.Ordered;
+import org.springframework.web.filter.CorsFilter;
+
 @Configuration
 public class SecurityConfig {
 
@@ -50,13 +54,22 @@ public class SecurityConfig {
             originList.forEach(config::addAllowedOriginPattern);
         }
 
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("*"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    @Bean
+    public FilterRegistrationBean<CorsFilter> corsFilterRegistration(CorsConfigurationSource source) {
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+        bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return bean;
     }
 
     @Bean
