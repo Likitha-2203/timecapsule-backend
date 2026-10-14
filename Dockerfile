@@ -21,10 +21,10 @@ WORKDIR /app
 # Copy executable jar from build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Render assigns a dynamic port via the PORT environment variable
-ENV PORT=8080
-EXPOSE 8080
+# Render assigns a dynamic port via the PORT environment variable (default 10000)
+ENV PORT=10000
+EXPOSE 10000
 
 # JVM container options:
-# - UseContainerSupport & MaxRAMPercentage=75.0 ensure the JVM stays within Render's 512MB RAM limit
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+# - UseContainerSupport & MaxRAMPercentage=65.0 + Xss512k prevent container OOM throttling on Render free tier
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=65.0", "-Xss512k", "-jar", "app.jar"]

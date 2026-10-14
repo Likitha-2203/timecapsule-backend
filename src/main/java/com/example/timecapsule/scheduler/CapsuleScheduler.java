@@ -7,12 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
 /**
- * Runs every 30 seconds and sends two kinds of email:
+ * Runs periodically and sends two kinds of email:
  *  1. "opens soon" reminders, and
  *  2. "ready to open" notices once a capsule has unlocked.
  * A flag is only set after the email was sent successfully, so failures are retried on the next run.
@@ -30,8 +29,7 @@ public class CapsuleScheduler {
         this.notificationService = notificationService;
     }
 
-    @Scheduled(fixedDelay = 30_000)
-    @Transactional
+    @Scheduled(initialDelay = 30_000, fixedDelay = 30_000)
     public void sendNotifications() {
         Instant now = Instant.now();
 
@@ -39,6 +37,7 @@ public class CapsuleScheduler {
             try {
                 if (notificationService.capsuleReminder(capsule)) {
                     capsule.setReminderSent(true);
+                    capsuleRepository.save(capsule);
                     log.info("Reminder sent for capsule {}", capsule.getId());
                 }
             } catch (Exception e) {
@@ -50,6 +49,7 @@ public class CapsuleScheduler {
             try {
                 if (notificationService.capsuleReady(capsule)) {
                     capsule.setNotified(true);
+                    capsuleRepository.save(capsule);
                     log.info("Ready notice sent for capsule {}", capsule.getId());
                 }
             } catch (Exception e) {
