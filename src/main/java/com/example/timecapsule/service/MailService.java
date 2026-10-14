@@ -57,13 +57,16 @@ public class MailService {
         }
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            if (!from.isBlank()) {
+            if (from != null && !from.isBlank()) {
                 message.setFrom(from);
+            } else if (username != null && !username.isBlank()) {
+                message.setFrom(username);
             }
             message.setTo(to);
             message.setSubject(subject);
             message.setText(body);
             sender.send(message);
+            log.info("Email sent successfully to {}", to);
         } catch (Exception e) {
             log.error("Failed to send email to {}", to, e);
             throw new ApiException(HttpStatus.BAD_GATEWAY,

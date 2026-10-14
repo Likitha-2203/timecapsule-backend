@@ -40,6 +40,12 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "The request could not be read. Please check the details you entered."));
     }
 
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Map<String, Object>> handleMethodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException e) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(Map.of("error", "HTTP " + e.getMethod() + " is not supported. Please use the TimeCapsule web app at https://timecapsule-frontend-ruddy.vercel.app to register and log in."));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception e) {
         log.error("Unhandled exception: ", e);
