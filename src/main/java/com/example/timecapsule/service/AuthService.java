@@ -11,6 +11,8 @@ import com.example.timecapsule.repository.LoginHistoryRepository;
 import com.example.timecapsule.repository.OtpTokenRepository;
 import com.example.timecapsule.repository.UserRepository;
 import com.example.timecapsule.security.JwtService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ import java.util.regex.Pattern;
 @Transactional(noRollbackFor = ApiException.class)
 public class AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private static final String VERIFY = "VERIFY";
     private static final String RESET = "RESET";
     private static final int MAX_ATTEMPTS = 5;
@@ -176,10 +179,15 @@ public class AuthService {
         otpRepository.flush();
         otpRepository.save(new OtpToken(user.getEmail(), purpose, hash(code), Instant.now().plus(CODE_TTL)));
 
-        mailService.send(user.getEmail(), subject,
+        boolean sent = mailService.trySend(user.getEmail(), subject,
                 "Hi " + user.getName() + ",\n\n" + intro + "\n\nYour code: " + code
                         + "\n\nThis code expires in 10 minutes. If you did not request it, you can ignore this email."
                         + "\n\n— TimeCapsule");
+
+        if (!sent) {
+            log.warn("\n=======================================================\n[EMAIL DELIVERY NOTICE]\nCould not deliver email to {}.\nYour 6-digit verification code is: {}\n=======================================================",
+                    user.getEmail(), code);
+        }
     }
 
     private void checkCode(String email, String purpose, String code) {
