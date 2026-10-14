@@ -27,4 +27,6 @@ EXPOSE 10000
 
 # JVM container options:
 # - UseContainerSupport & MaxRAMPercentage=65.0 + Xss512k prevent container OOM throttling on Render free tier
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=65.0", "-Xss512k", "-jar", "app.jar"]
+# - /dev/urandom prevents SecureRandom entropy starvation during cloud boot
+# - Pass server.port and server.address 0.0.0.0
+ENTRYPOINT ["sh", "-c", "java -XX:+UseContainerSupport -XX:MaxRAMPercentage=65.0 -Xss512k -Djava.security.egd=file:/dev/./urandom -Dserver.port=${PORT:-10000} -Dserver.address=0.0.0.0 -jar app.jar"]
