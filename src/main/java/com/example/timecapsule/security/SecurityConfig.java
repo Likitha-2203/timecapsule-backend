@@ -54,11 +54,10 @@ public class SecurityConfig {
                 .filter(s -> !s.isEmpty())
                 .toList();
 
-        if (originList.isEmpty() || originList.contains("*")) {
-            config.addAllowedOriginPattern("*");
-        } else {
-            originList.forEach(config::addAllowedOriginPattern);
-        }
+        // Allow all origin patterns (Vercel previews, production domains, localhost)
+        config.addAllowedOriginPattern("*");
+        config.addAllowedOriginPattern("https://*.vercel.app");
+        originList.forEach(config::addAllowedOriginPattern);
 
         config.setAllowedMethods(
                 List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
